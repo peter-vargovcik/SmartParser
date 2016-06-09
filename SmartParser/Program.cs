@@ -115,10 +115,8 @@ namespace SmartParser
                 using (var stream = new MemoryStream(File.ReadAllBytes("c:\\Users\\Peter Vargovcik\\Documents\\Visual Studio 2015\\Projects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
                 {
                     XSSFWorkbook hssfwb = new XSSFWorkbook(stream);
-
-                    Dictionary<XSSFRow, IEnumerable<XSSFRow>> rowDictionary = new Dictionary<XSSFRow, IEnumerable<XSSFRow>>();
-                    string previousHash = "";
-
+                    MyLinkedList<XSSFRow> list = new MyLinkedList<XSSFRow>();
+                    
                     for (int i = 0; i < hssfwb.NumberOfSheets; i++)
                     {
                         XSSFSheet sheet = (XSSFSheet)hssfwb.GetSheetAt(i);
@@ -130,38 +128,15 @@ namespace SmartParser
                         while (rows.MoveNext())
                         {
                             XSSFRow row = (XSSFRow)rows.Current;
-
-                            Console.Write("Sheet : {0}, Line {1}, ", sheet.SheetName, rowNumber);
-                            
+                                                        
                             // hash of the row types 
                             var rowTypeString =String.Join("-", row.Cells.Select(x => x.CellType.ToString()).ToArray());
-
                            var currentHashRow = _getCheckSumMD5(Encoding.ASCII.GetBytes(rowTypeString));
 
-                            if(_hashNotSame(previousHash, currentHashRow))
-                            {
-                                rowDictionary.Add(row, new List<XSSFRow>());
-                            }
-                            else
-                            {
-                                IEnumerable<XSSFRow> list = rowDictionary.Last().Value;
-                                ((List<XSSFRow>)list).Add(row);
-                            }
-
-
-                            //for (int j = 0; j < row.Cells.Count; j++)
-                            //{
-                            //    Console.Write("[{0} : {1}], ", j, row.Cells[j].CellType.ToString());
-                            //}
-
-                            //Console.WriteLine();
-
-                            //var firstCell = row.Cells[0].CellType;
-                            //Console.WriteLine(firstCell.ToString());
-                            rowNumber++;
-                            previousHash = currentHashRow;
+                            list.Add(row, currentHashRow);
                         }
 
+                        list.evaluate();
                     }
 
                 }
@@ -171,6 +146,8 @@ namespace SmartParser
                 throw ex;
             }
         }
+
+  
 
         private bool _hashNotSame(string previousHash, string currentHashRow)
         {

@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace SmartParser
 {
-    class MyLinkedList
+    class MyLinkedList<NPOI_Node>
     {
         public class Node
         {
-            public object NodeContent;
+            public NPOI_Node NodeContent;
+            public string hash;
+            public Node Previous;
             public Node Next;
+            public bool isHeader = false;
         }
 
         private int size;
@@ -33,7 +36,7 @@ namespace SmartParser
         /// </summary>
         private Node current;
 
-        public List()
+        public MyLinkedList()
         {
             size = 0;
             head = null;
@@ -43,14 +46,16 @@ namespace SmartParser
         /// <summary>
         /// Add a new Node to the list.
         /// </summary>
-        public void Add(object content)
+        public void Add(NPOI_Node content, string _hash)
         {
             size++;
+            Node tempCurrent = current;
 
             // This is a more verbose implementation to avoid adding nodes to the head of the list
             var node = new Node()
             {
-                NodeContent = content
+                NodeContent = content,
+                hash = _hash
             };
 
             if (head == null)
@@ -62,6 +67,7 @@ namespace SmartParser
             {
                 // This is not the head. Make it current's next node.
                 current.Next = node;
+                node.Previous = tempCurrent;
             }
 
             // Makes newly added node the current node
@@ -155,6 +161,39 @@ namespace SmartParser
             }
 
             return false;
+        }
+
+        internal void evaluate()
+        {
+            Node tempNode = head;
+            Node previous = null;
+            Node next = null;
+
+            while (tempNode != null)
+            {
+                previous = tempNode.Previous;
+                next = tempNode.Next;
+                _evalNodes(previous, tempNode, next);
+                tempNode = tempNode.Next;
+            }
+        }
+
+        private void _evalNodes(Node previous, Node tempNode, Node next)
+        {
+            if(previous == null && _hashNotSame(tempNode.hash, next.hash))
+            {
+                tempNode.isHeader = true;
+            }
+        }
+
+        private bool _hashNotSame(string previousHash, string currentHashRow)
+        {
+            StringComparer stringComparer = StringComparer.InvariantCulture;
+
+            if (stringComparer.Compare(previousHash, currentHashRow) == 0)
+                return false;
+            else
+                return true;
         }
     }
 }
