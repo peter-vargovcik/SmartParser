@@ -70,6 +70,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Files\daily_totals_2012-2014.xlsx" />
+    <None Include="Files\multipleTables.xlsx" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

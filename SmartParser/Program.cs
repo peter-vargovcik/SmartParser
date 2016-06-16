@@ -112,7 +112,7 @@ namespace SmartParser
         {
             try
             {
-                using (var stream = new MemoryStream(File.ReadAllBytes("c:\\Users\\Peter Vargovcik\\Documents\\Visual Studio 2015\\Projects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
+                using (var stream = new MemoryStream(File.ReadAllBytes("C:\\Users\\PeterVargovcik\\Documents\\_PetProjects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
                 {
                     XSSFWorkbook hssfwb = new XSSFWorkbook(stream);
                     MyLinkedList<XSSFRow> list = new MyLinkedList<XSSFRow>();
@@ -134,6 +134,11 @@ namespace SmartParser
                            var currentHashRow = _getCheckSumMD5(Encoding.ASCII.GetBytes(rowTypeString));
 
                             list.Add(row, currentHashRow);
+                        }
+
+                        foreach (var node in list)
+                        {
+                            var cellCount = node.Cells;
                         }
 
                         list.evaluate();

@@ -1,12 +1,16 @@
-﻿using System;
+﻿using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace SmartParser
 {
-    class MyLinkedList<NPOI_Node>
+    class MyLinkedList<NPOI_Node> : IEnumerable<NPOI_Node> where NPOI_Node : IRow
     {
         public class Node
         {
@@ -184,6 +188,8 @@ namespace SmartParser
             {
                 tempNode.isHeader = true;
             }
+
+            //tempNode.NodeContent.
         }
 
         private bool _hashNotSame(string previousHash, string currentHashRow)
@@ -194,6 +200,28 @@ namespace SmartParser
                 return false;
             else
                 return true;
+        }
+
+        public IEnumerator<NPOI_Node> GetEnumerator()
+        {
+            Node tempNode = head;
+
+            while (tempNode != null)
+            {
+                yield return (NPOI_Node) tempNode.NodeContent;
+                tempNode = tempNode.Next;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            Node tempNode = head;
+
+            while (tempNode != null)
+            {
+                yield return tempNode.NodeContent;
+                tempNode = tempNode.Next;
+            }
         }
     }
 }
