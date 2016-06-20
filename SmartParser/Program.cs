@@ -103,6 +103,8 @@ namespace SmartParser
 
             int combinationCount = combinationPerProperty.Aggregate(1, (a, b) => a * b);
 
+            List<string[]> combinations = _getCombinations(headders);
+
 
             //// convert to dictionary
             //Dictionary<int, KeyValuePair<string, string[]>> headersDictionary = new Dictionary<int, KeyValuePair<string, string[]>>();
@@ -127,6 +129,55 @@ namespace SmartParser
 
 
 
+        }
+
+        private List<string[]> _getCombinations(List<KeyValuePair<int, KeyValuePair<string, string[]>>> headders)
+        {
+            var tempArrayList = new List<string[]>();
+            var headerArrayQueue = new Queue<string[]>();
+
+            var headdersCopy = headders.ToList();
+
+            var combinationPerProperty = headdersCopy
+                .Select(x => x.Value.Value.Length)
+                .ToArray<int>();
+
+            // itorate throuhg all combinations
+
+            var listOfLists = new List<List<string>>();
+
+
+            var indexState = new int[headdersCopy.Count];
+            indexState = indexState.Select(x => x = -1).ToArray();
+            bool changeMade = false;
+
+            foreach (KeyValuePair<int, KeyValuePair<string, string[]>> item in headdersCopy)
+            {
+                var propertyParamsLengh = item.Value.Value.Length;
+                for (int i = 0; i < propertyParamsLengh; i++)
+                {
+                    // if item in the list ocupies this index clone the list, add to listof list and change item on this index
+                    if(listOfLists.Select(x => new { x.Count}).ToArray<int>.Where(x=> x < i) != null)
+
+                    if (listOfLists.Count == 0)
+                        listOfLists.Add(new List<string>() { item.Value.Value[i] });
+                    else
+                        listOfLists.ForEach(x => x.Add(item.Value.Value[i]));
+                }
+
+                //if (item.Value.Value.Length > 1)
+                //{
+
+                //}
+                //else
+                //{
+                //    listOfLists.ForEach(x=>x.Add(item.Value.Value[0]));
+                //}
+                //propertyArray[item.Key] = item.Value.Value[0];
+            }
+
+
+            return null;
         }
 
         private byte[] _downloadDataFromWeb(string link)
@@ -187,13 +238,13 @@ namespace SmartParser
         //    }
 
         //    throw new NotImplementedException();
-        //}
+        //}C:\Users\PeterVargovcik\Documents\_PetProjects\SmartParser\SmartParser\Files\daily_totals_2012-2014.xlsx
 
         private void _scan()
         {
             try
             {
-                using (var stream = new MemoryStream(File.ReadAllBytes("c:\\Users\\Peter Vargovcik\\Documents\\Visual Studio 2015\\Projects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
+                using (var stream = new MemoryStream(File.ReadAllBytes("C:\\Users\\PeterVargovcik\\Documents\\_PetProjects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
                 {
                     XSSFWorkbook hssfwb = new XSSFWorkbook(stream);
 
@@ -290,5 +341,13 @@ namespace SmartParser
     class Metadata<ModelObj>
     {
 
+    }
+
+    static class Extensions
+    {
+        public static IList<T> Clone<T>(this IList<T> listToClone) where T : ICloneable
+        {
+            return listToClone.Select(item => (T)item.Clone()).ToList();
+        }
     }
 }
