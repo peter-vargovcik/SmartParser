@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,11 +15,23 @@ namespace SmartParser
     class LNGFileValue_DailyTotal
     {
         public string Country { get; set; }
+
+        [TableHeader(0,"DATE")]
         public DateTime Date { get; set; }
+
+        [TableHeader(1, "Inventory (103 m3 LNG)","second")]
         public double Inventory { get; set; }
+
+        [TableHeader(2, "Send-Out (106 m3 NG)")]
         public double SendOut { get; set; }
+
+        [TableHeader(3, "STATUS","thirth","fourth")]
         public string Status { get; set; }
+
+        [TableHeader(4, "DTMI (103 m3 LNG)")]
         public double Dtmi { get; set; }
+
+        [TableHeader(5, "DTRS (106 m3 NG)")]
         public double Dtrs { get; set; }
     }
 
@@ -35,17 +48,85 @@ namespace SmartParser
         }
     }
 
+    [AttributeUsage(AttributeTargets.All)]
+    public class TableHeader : Attribute
+    {
+        public TableHeader(int index, params string[] headers)
+        {
+            Index = index;
+            Headers = headers;
+        }
+        public int Index { get; private set; }
+        public string[] Headers { get; private set; }
+    }
+
+
     class PetParser
     {
         private string _url;
         private Type _model;
+        private string[] _headersCombinationsHash;
 
 
         public PetParser(string link, Type model)
         {
             _url = link;
             _model = model;
+
+            _buildHeadersCombinationFromAttributes();
             _scan();
+        }
+
+        private void _buildHeadersCombinationFromAttributes()
+        {
+            PropertyInfo[] props = _model.GetProperties();
+            
+            int[] ab = new int[props.Count(x => x.GetCustomAttribute<TableHeader>() != null)];
+
+            // convert to dictionary
+            var headders = props
+                .Where(x => x.GetCustomAttribute<TableHeader>() != null)
+                .Select
+                (
+                    x => new KeyValuePair<int, KeyValuePair<string, string[]>>
+                    (
+                        x.GetCustomAttribute<TableHeader>().Index,
+                        new KeyValuePair<string, string[]>(x.Name, x.GetCustomAttribute<TableHeader>().Headers)
+                    )
+                )
+                .OrderBy(x => x.Key)
+                .ToList();
+
+            var combinationPerProperty = headders
+                .Select(x => x.Value.Value.Length)
+                .ToArray<int>();
+
+            int combinationCount = combinationPerProperty.Aggregate(1, (a, b) => a * b);
+
+
+            //// convert to dictionary
+            //Dictionary<int, KeyValuePair<string, string[]>> headersDictionary = new Dictionary<int, KeyValuePair<string, string[]>>();
+            //foreach (PropertyInfo prp in props)
+            //{
+            //    var attribute = prp.GetCustomAttribute<TableHeader>();
+            //    if (attribute != null)
+            //    {
+            //        headersDictionary.Add(attribute.Index, new KeyValuePair<string, string[]>(prp.Name, attribute.Headers));
+
+            //    }
+            //}
+
+            //// read dictionary 
+            //int[] aa = new int[headersDictionary.Count];
+
+            //foreach (KeyValuePair<int, KeyValuePair<string, string[]>> pair in headersDictionary)
+            //{
+            //    aa[pair.Key] = pair.Value.Value.Length;
+            //}
+
+
+
+
         }
 
         private byte[] _downloadDataFromWeb(string link)

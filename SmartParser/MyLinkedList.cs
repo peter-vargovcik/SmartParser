@@ -156,5 +156,72 @@ namespace SmartParser
 
             return false;
         }
+
+        internal void evaluate()
+        {
+            Node tempNode = head;
+            Node previous = null;
+            Node next = null;
+
+            while (tempNode != null)
+            {
+                previous = tempNode.Previous;
+                next = tempNode.Next;
+                _evalNodes(previous, tempNode, next);
+                tempNode = tempNode.Next;
+            }
+        }
+
+        private void _evalNodes(Node previous, Node tempNode, Node next)
+        {
+            // For testing 
+            var firstCell = tempNode.NodeContent.First();
+
+            if(firstCell.CellType == CellType.String)
+            {
+                var stringValue = firstCell.StringCellValue;
+                bool isTable = stringValue.Contains("Table 1");
+            }
+            // End For testing    
+
+            if (previous == null && _hashNotSame(tempNode.hash, next.hash))
+            {
+                tempNode.isHeader = true;
+            }
+
+            //tempNode.NodeContent.
+        }
+
+        private bool _hashNotSame(string previousHash, string currentHashRow)
+        {
+            StringComparer stringComparer = StringComparer.InvariantCulture;
+
+            if (stringComparer.Compare(previousHash, currentHashRow) == 0)
+                return false;
+            else
+                return true;
+        }
+
+        public IEnumerator<NPOI_Node> GetEnumerator()
+        {
+            Node tempNode = head;
+
+            while (tempNode != null)
+            {
+                yield return (NPOI_Node) tempNode.NodeContent;
+                tempNode = tempNode.Next;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            Node tempNode = head;
+
+            while (tempNode != null)
+            {
+                yield return tempNode.NodeContent;
+                tempNode = tempNode.Next;
+            }
+        }
     }
 }
