@@ -31,7 +31,7 @@ namespace SmartParser
         [TableHeader(4, "DTMI (103 m3 LNG)")]
         public double Dtmi { get; set; }
 
-        [TableHeader(5, "DTRS (106 m3 NG)")]
+        [TableHeader(5, "DTRS (106 m3 NG)","Anoter","One")]
         public double Dtrs { get; set; }
     }
 
@@ -148,6 +148,9 @@ namespace SmartParser
             foreach (KeyValuePair<int, KeyValuePair<string, string[]>> item in headdersCopy)
             {
                 var propertyParamsLengh = item.Value.Value.Length;
+                // copy lists
+                var listCopy = listOfLists.ToList();
+
                 for (int propertyParamIndex = 0; propertyParamIndex < propertyParamsLengh; propertyParamIndex++)
                 {
                     // if item in the list ocupies this index clone the list, add to listof list and change item on this index
@@ -160,14 +163,16 @@ namespace SmartParser
                     if (listOfLists.Count == 0 || propertyParamIndex > 0)
                     {
                         var list = new List<string>();
-
-                        for (int j = 0; j < item.Key + 1; j++)
+                        if (listOfLists.Count == 0)
                         {
-                            //copy lists and add new item at j index
-                            list.Add(headdersCopy.ElementAt(j).Value.Value[(j == item.Key)? propertyParamIndex : 0]);
+                            for (int j = 0; j < item.Key + 1; j++)
+                                list.Add(headdersCopy.ElementAt(j).Value.Value[(j == item.Key) ? propertyParamIndex : 0]);
+                            listOfLists.Add(list);
                         }
+                        var thisList = listCopy.ToList();
+                        thisList.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
+                        listOfLists.AddRange(thisList);
 
-                        listOfLists.Add(list);
                     }
                     else
                         listOfLists.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
