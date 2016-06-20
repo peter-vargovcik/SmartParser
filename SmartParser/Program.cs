@@ -142,37 +142,86 @@ namespace SmartParser
             // itorate throuhg all combinations
 
             var listOfLists = new List<List<string>>();
+            listOfLists.Add(new List<string>());
 
-            
+
 
             foreach (KeyValuePair<int, KeyValuePair<string, string[]>> item in headdersCopy)
             {
                 var propertyParamsLengh = item.Value.Value.Length;
                 // copy lists
-                var listCopy = listOfLists.ToList();
+                var listCopy = listOfLists.Select(x=> { return _cloneList(x); }).ToList();
 
                 for (int propertyParamIndex = 0; propertyParamIndex < propertyParamsLengh; propertyParamIndex++)
                 {
-                    // if item in the list ocupies this index clone the list, add to listof list and change item on this index
+                    //if (listOfLists.Count == 0 )
+                    //{
+                        //var list = new List<string>();
+                        //if (listOfLists.Count == 0)
+                        //{
+                        //    for (int j = 0; j < item.Key + 1; j++)
+                        //        list.Add(headdersCopy.ElementAt(j).Value.Value[(j == item.Key) ? propertyParamIndex : 0]);
+                        //    listOfLists.Add(list);
+                        //}
+                    //}
+                    //else if(propertyParamsLengh > 0)
+                    //{
+                    //    if((listOfLists.First().Count -1 ) == item.Key)
+                    //    {
+                    //        //var listCopy = listOfLists.ToList();
 
-                    //var withThisIndex = listOfLists
-                    //    .Select(x => x.Count)
-                    //    .Where(x => x < item.Key)
-                    //    .Count();
+                    //        //listCopy.ForEach(x => x.ElementAt(item.Key).Select(c => { c = item.Value.Value[propertyParamIndex]; return c; }).ToList());
+                    //        listCopy.ForEach(x => x[item.Key] = item.Value.Value[propertyParamIndex]);
 
-                    if (listOfLists.Count == 0 || propertyParamIndex > 0)
+
+                    //        //foreach (List<string> l in listCopy)
+                    //        //{
+                    //        //    var value = l.ElementAt(item.Key);
+                    //        //    value = item.Value.Value[propertyParamIndex];
+                    //        //}
+
+                    //        listOfLists.AddRange(listCopy);
+                    //    }
+                    //    else
+                    //    {
+                    //        var thisList = listOfLists.ToList();
+                    //        thisList.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
+                    //        listOfLists.AddRange(thisList);
+                    //    }                        
+                    //}
+                    if (propertyParamsLengh > 1)
                     {
-                        var list = new List<string>();
-                        if (listOfLists.Count == 0)
-                        {
-                            for (int j = 0; j < item.Key + 1; j++)
-                                list.Add(headdersCopy.ElementAt(j).Value.Value[(j == item.Key) ? propertyParamIndex : 0]);
-                            listOfLists.Add(list);
-                        }
-                        var thisList = listCopy.ToList();
-                        thisList.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
-                        listOfLists.AddRange(thisList);
+                        var copy = listCopy.Select(x => { return _cloneList(x); }).ToList();
 
+                        try
+                        {
+                            copy.ForEach(x => x[item.Key] = item.Value.Value[propertyParamIndex]);
+                        }
+                        catch(ArgumentOutOfRangeException e)
+                        {
+                            copy.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
+                        }
+
+                        //if ((copy.First().Count - 1) == item.Key)
+                        //{
+                        //    //var listCopy = listOfLists.ToList();
+
+                        //    //listCopy.ForEach(x => x.ElementAt(item.Key).Select(c => { c = item.Value.Value[propertyParamIndex]; return c; }).ToList());
+                        //    copy.ForEach(x => x[item.Key] = item.Value.Value[propertyParamIndex]);
+
+
+                        //    //foreach (List<string> l in listCopy)
+                        //    //{
+                        //    //    var value = l.ElementAt(item.Key);
+                        //    //    value = item.Value.Value[propertyParamIndex];
+                        //    //}
+                        //}
+                        //else
+                        //{
+                        //    copy.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
+                            
+                        //}
+                        listOfLists.AddRange(copy);
                     }
                     else
                         listOfLists.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
@@ -185,6 +234,26 @@ namespace SmartParser
 
             return null;
         }
+
+        private List<string> _cloneList(List<string> source)
+        {
+            List<string> output = new List<string>();
+            for (int i = 0; i < source.Count; i++)
+            {
+                output.Add("" +source[i]);
+            }
+            return output;
+        }
+
+        //private List<T> _cloneList<T>(List<T> source)
+        //{
+        //    List<T> output = new List<T>();
+        //    for (int i = 0; i < source.Count; i++)
+        //    {
+        //        output.Add((T)source[i].MemberwiseClone());
+        //    }
+        //    return output;
+        //}
 
         private byte[] _downloadDataFromWeb(string link)
         {
@@ -244,13 +313,13 @@ namespace SmartParser
         //    }
 
         //    throw new NotImplementedException();
-        //}C:\Users\PeterVargovcik\Documents\_PetProjects\SmartParser\SmartParser\Files\daily_totals_2012-2014.xlsx
+        //}
 
         private void _scan()
         {
             try
             {
-                using (var stream = new MemoryStream(File.ReadAllBytes("C:\\Users\\PeterVargovcik\\Documents\\_PetProjects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
+                using (var stream = new MemoryStream(File.ReadAllBytes("c:\\Users\\Peter Vargovcik\\Documents\\Visual Studio 2015\\Projects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
                 {
                     XSSFWorkbook hssfwb = new XSSFWorkbook(stream);
 
