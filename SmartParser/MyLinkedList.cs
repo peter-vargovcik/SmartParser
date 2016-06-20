@@ -1,17 +1,24 @@
-﻿using System;
+﻿using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace SmartParser
 {
-    class MyLinkedList
+    class MyLinkedList<NPOI_Node> : IEnumerable<NPOI_Node> where NPOI_Node : IRow
     {
         public class Node
         {
-            public object NodeContent;
+            public NPOI_Node NodeContent;
+            public string hash;
+            public Node Previous;
             public Node Next;
+            public bool isHeader = false;
         }
 
         private int size;
@@ -33,7 +40,7 @@ namespace SmartParser
         /// </summary>
         private Node current;
 
-        public List()
+        public MyLinkedList()
         {
             size = 0;
             head = null;
@@ -43,14 +50,16 @@ namespace SmartParser
         /// <summary>
         /// Add a new Node to the list.
         /// </summary>
-        public void Add(object content)
+        public void Add(NPOI_Node content, string _hash)
         {
             size++;
+            Node tempCurrent = current;
 
             // This is a more verbose implementation to avoid adding nodes to the head of the list
             var node = new Node()
             {
-                NodeContent = content
+                NodeContent = content,
+                hash = _hash
             };
 
             if (head == null)
@@ -62,6 +71,7 @@ namespace SmartParser
             {
                 // This is not the head. Make it current's next node.
                 current.Next = node;
+                node.Previous = tempCurrent;
             }
 
             // Makes newly added node the current node
@@ -174,16 +184,6 @@ namespace SmartParser
 
         private void _evalNodes(Node previous, Node tempNode, Node next)
         {
-            // For testing 
-            var firstCell = tempNode.NodeContent.First();
-
-            if(firstCell.CellType == CellType.String)
-            {
-                var stringValue = firstCell.StringCellValue;
-                bool isTable = stringValue.Contains("Table 1");
-            }
-            // End For testing    
-
             if (previous == null && _hashNotSame(tempNode.hash, next.hash))
             {
                 tempNode.isHeader = true;
@@ -208,7 +208,7 @@ namespace SmartParser
 
             while (tempNode != null)
             {
-                yield return (NPOI_Node) tempNode.NodeContent;
+                yield return (NPOI_Node)tempNode.NodeContent;
                 tempNode = tempNode.Next;
             }
         }
