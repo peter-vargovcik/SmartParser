@@ -19,19 +19,19 @@ namespace SmartParser
         [TableHeader(0,"DATE")]
         public DateTime Date { get; set; }
 
-        [TableHeader(1, "Inventory (103 m3 LNG)","second")]
+        [TableHeader(1, "Inventory (103 m3 LNG)")]
         public double Inventory { get; set; }
 
         [TableHeader(2, "Send-Out (106 m3 NG)")]
         public double SendOut { get; set; }
 
-        [TableHeader(3, "STATUS","thirth","fourth")]
+        [TableHeader(3, "STATUS")]
         public string Status { get; set; }
 
         [TableHeader(4, "DTMI (103 m3 LNG)")]
         public double Dtmi { get; set; }
 
-        [TableHeader(5, "DTRS (106 m3 NG)","Anoter","One")]
+        [TableHeader(5, "DTRS (106 m3 NG)")]
         public double Dtrs { get; set; }
     }
 
@@ -81,8 +81,6 @@ namespace SmartParser
         {
             PropertyInfo[] props = _model.GetProperties();
             
-            int[] ab = new int[props.Count(x => x.GetCustomAttribute<TableHeader>() != null)];
-
             // convert to dictionary
             var headders = props
                 .Where(x => x.GetCustomAttribute<TableHeader>() != null)
@@ -97,142 +95,55 @@ namespace SmartParser
                 .OrderBy(x => x.Key)
                 .ToList();
 
-            var combinationPerProperty = headders
-                .Select(x => x.Value.Value.Length)
-                .ToArray<int>();
+            // possible combination count & check
 
-            int combinationCount = combinationPerProperty.Aggregate(1, (a, b) => a * b);
+            //var combinationPerProperty = headders
+            //    .Select(x => x.Value.Value.Length)
+            //    .ToArray<int>();
+
+            //int combinationCount = combinationPerProperty.Aggregate(1, (a, b) => a * b);
 
             List<string[]> combinations = _getCombinations(headders);
 
-
-            //// convert to dictionary
-            //Dictionary<int, KeyValuePair<string, string[]>> headersDictionary = new Dictionary<int, KeyValuePair<string, string[]>>();
-            //foreach (PropertyInfo prp in props)
-            //{
-            //    var attribute = prp.GetCustomAttribute<TableHeader>();
-            //    if (attribute != null)
-            //    {
-            //        headersDictionary.Add(attribute.Index, new KeyValuePair<string, string[]>(prp.Name, attribute.Headers));
-
-            //    }
-            //}
-
-            //// read dictionary 
-            //int[] aa = new int[headersDictionary.Count];
-
-            //foreach (KeyValuePair<int, KeyValuePair<string, string[]>> pair in headersDictionary)
-            //{
-            //    aa[pair.Key] = pair.Value.Value.Length;
-            //}
-
-
-
+            _headersCombinationsHash = _getCombinations(headders).Select(x=> 
+            {
+                byte[] headder = Encoding.ASCII.GetBytes(string.Join("-", x.ToArray()));
+                return _getCheckSumMD5(headder);
+            }).ToArray<string>();           
 
         }
 
         private List<string[]> _getCombinations(List<KeyValuePair<int, KeyValuePair<string, string[]>>> headders)
         {
-            var headdersCopy = headders.ToList();
-
-            var combinationPerProperty = headdersCopy
-                .Select(x => x.Value.Value.Length)
-                .ToArray<int>();
-
-            // itorate throuhg all combinations
-
             var listOfLists = new List<List<string>>();
             listOfLists.Add(new List<string>());
-
-
-
-            foreach (KeyValuePair<int, KeyValuePair<string, string[]>> item in headdersCopy)
+            
+            foreach (KeyValuePair<int, KeyValuePair<string, string[]>> item in headders)
             {
                 var propertyParamsLengh = item.Value.Value.Length;
-                // copy lists
-                var listCopy = listOfLists.Select(x=> { return _cloneList(x); }).ToList();
 
-                for (int propertyParamIndex = 0; propertyParamIndex < propertyParamsLengh; propertyParamIndex++)
+                if(propertyParamsLengh >1)
                 {
-                    //if (listOfLists.Count == 0 )
-                    //{
-                        //var list = new List<string>();
-                        //if (listOfLists.Count == 0)
-                        //{
-                        //    for (int j = 0; j < item.Key + 1; j++)
-                        //        list.Add(headdersCopy.ElementAt(j).Value.Value[(j == item.Key) ? propertyParamIndex : 0]);
-                        //    listOfLists.Add(list);
-                        //}
-                    //}
-                    //else if(propertyParamsLengh > 0)
-                    //{
-                    //    if((listOfLists.First().Count -1 ) == item.Key)
-                    //    {
-                    //        //var listCopy = listOfLists.ToList();
+                    var listCopy = listOfLists.Select(x => { return _cloneList(x); }).ToList();
 
-                    //        //listCopy.ForEach(x => x.ElementAt(item.Key).Select(c => { c = item.Value.Value[propertyParamIndex]; return c; }).ToList());
-                    //        listCopy.ForEach(x => x[item.Key] = item.Value.Value[propertyParamIndex]);
-
-
-                    //        //foreach (List<string> l in listCopy)
-                    //        //{
-                    //        //    var value = l.ElementAt(item.Key);
-                    //        //    value = item.Value.Value[propertyParamIndex];
-                    //        //}
-
-                    //        listOfLists.AddRange(listCopy);
-                    //    }
-                    //    else
-                    //    {
-                    //        var thisList = listOfLists.ToList();
-                    //        thisList.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
-                    //        listOfLists.AddRange(thisList);
-                    //    }                        
-                    //}
-                    if (propertyParamsLengh > 1)
+                    for (int propertyParamIndex = 0; propertyParamIndex < propertyParamsLengh; propertyParamIndex++)
                     {
-                        var copy = listCopy.Select(x => { return _cloneList(x); }).ToList();
-
-                        try
+                        if(propertyParamIndex == 0)
+                            listOfLists.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
+                        else
                         {
-                            copy.ForEach(x => x[item.Key] = item.Value.Value[propertyParamIndex]);
-                        }
-                        catch(ArgumentOutOfRangeException e)
-                        {
+                            var copy = listCopy.Select(x => { return _cloneList(x); }).ToList();
                             copy.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
+                            listOfLists.AddRange(copy);
                         }
 
-                        //if ((copy.First().Count - 1) == item.Key)
-                        //{
-                        //    //var listCopy = listOfLists.ToList();
-
-                        //    //listCopy.ForEach(x => x.ElementAt(item.Key).Select(c => { c = item.Value.Value[propertyParamIndex]; return c; }).ToList());
-                        //    copy.ForEach(x => x[item.Key] = item.Value.Value[propertyParamIndex]);
-
-
-                        //    //foreach (List<string> l in listCopy)
-                        //    //{
-                        //    //    var value = l.ElementAt(item.Key);
-                        //    //    value = item.Value.Value[propertyParamIndex];
-                        //    //}
-                        //}
-                        //else
-                        //{
-                        //    copy.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
-                            
-                        //}
-                        listOfLists.AddRange(copy);
                     }
-                    else
-                        listOfLists.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
-
-                    
                 }
+                else
+                    listOfLists.ForEach(x => x.Add(item.Value.Value[0]));                
                 
             }
-
-
-            return null;
+            return listOfLists.Select(x=>x.ToArray()).ToList();
         }
 
         private List<string> _cloneList(List<string> source)
