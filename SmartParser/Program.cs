@@ -259,35 +259,7 @@ namespace SmartParser
                             XSSFRow row = (XSSFRow)rows.Current;
                             _linkedList.Add(row);
 
-                            Console.Write("Sheet : {0}, Line {1}, ", sheet.SheetName, rowNumber);
                             
-                            // hash of the row types 
-                            var rowTypeString =String.Join("-", row.Cells.Select(x => x.CellType.ToString()).ToArray());
-
-                           var currentHashRow = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowTypeString));
-
-                            if(_hashNotSame(previousHash, currentHashRow))
-                            {
-                                rowDictionary.Add(row, new List<XSSFRow>());
-                            }
-                            else
-                            {
-                                IEnumerable<XSSFRow> list = rowDictionary.Last().Value;
-                                ((List<XSSFRow>)list).Add(row);
-                            }
-
-
-                            //for (int j = 0; j < row.Cells.Count; j++)
-                            //{
-                            //    Console.Write("[{0} : {1}], ", j, row.Cells[j].CellType.ToString());
-                            //}
-
-                            //Console.WriteLine();
-
-                            //var firstCell = row.Cells[0].CellType;
-                            //Console.WriteLine(firstCell.ToString());
-                            rowNumber++;
-                            previousHash = currentHashRow;
                         }
 
                         foreach (var node in list)

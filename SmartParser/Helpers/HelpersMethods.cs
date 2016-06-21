@@ -93,7 +93,7 @@ namespace SmartParser.Helpers
                     output = "ICell have Error!!!";
                     break;
                 default:
-                    throw new ApplicationException("GetXSSFCellStringValue Error - XSSFCell cell type is not defined");
+                    throw new ApplicationException("GetICellStringValue Error - XSSFCell cell type is not defined");
             }
             return output;
         }

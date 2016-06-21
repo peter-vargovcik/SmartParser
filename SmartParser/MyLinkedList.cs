@@ -58,7 +58,6 @@ namespace SmartParser
             Node tempCurrent = current;
 
             var rowTypeString = HelpersMethods.StringArrayToString(content.Cells.Select(x => x.CellType.ToString()).ToArray());
-
             var rowValueString = HelpersMethods.StringArrayToString(content.Cells.Select(x => HelpersMethods.GetICellStringValue(x)).ToArray());
 
             var typeHash = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowTypeString));
