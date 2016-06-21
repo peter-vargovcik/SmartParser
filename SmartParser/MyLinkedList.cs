@@ -1,17 +1,26 @@
-﻿using System;
+﻿using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
+using SmartParser.Helpers;
 
 namespace SmartParser
 {
-    class MyLinkedList
+    class MyLinkedList<NPOI_Node> : IEnumerable<NPOI_Node> where NPOI_Node : IRow
     {
         public class Node
         {
-            public object NodeContent;
+            public NPOI_Node NodeContent;
+            public string TypesHash;
+            public string ValuesHash;
+            public Node Previous;
             public Node Next;
+            public bool isHeader = false;
         }
 
         private int size;
@@ -33,7 +42,7 @@ namespace SmartParser
         /// </summary>
         private Node current;
 
-        public List()
+        public MyLinkedList()
         {
             size = 0;
             head = null;
@@ -43,14 +52,24 @@ namespace SmartParser
         /// <summary>
         /// Add a new Node to the list.
         /// </summary>
-        public void Add(object content)
+        public void Add(NPOI_Node content)
         {
             size++;
+            Node tempCurrent = current;
+
+            var rowTypeString = HelpersMethods.StringArrayToString(content.Cells.Select(x => x.CellType.ToString()).ToArray());
+
+            var rowValueString = HelpersMethods.StringArrayToString(content.Cells.Select(x => HelpersMethods.GetICellStringValue(x)).ToArray());
+
+            var typeHash = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowTypeString));
+            var valuesHash = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowValueString));
 
             // This is a more verbose implementation to avoid adding nodes to the head of the list
             var node = new Node()
             {
-                NodeContent = content
+                NodeContent = content,
+                TypesHash = typeHash,
+                ValuesHash = valuesHash
             };
 
             if (head == null)
@@ -62,6 +81,7 @@ namespace SmartParser
             {
                 // This is not the head. Make it current's next node.
                 current.Next = node;
+                node.Previous = tempCurrent;
             }
 
             // Makes newly added node the current node
@@ -155,6 +175,63 @@ namespace SmartParser
             }
 
             return false;
+        }
+
+        internal void evaluate()
+        {
+            Node tempNode = head;
+            Node previous = null;
+            Node next = null;
+
+            while (tempNode != null)
+            {
+                previous = tempNode.Previous;
+                next = tempNode.Next;
+                _evalNodes(previous, tempNode, next);
+                tempNode = tempNode.Next;
+            }
+        }
+
+        private void _evalNodes(Node previous, Node tempNode, Node next)
+        {
+            if (previous == null && _hashNotSame(tempNode.TypesHash, next.TypesHash))
+            {
+                tempNode.isHeader = true;
+            }
+
+            //tempNode.NodeContent.
+        }
+
+        private bool _hashNotSame(string previousHash, string currentHashRow)
+        {
+            StringComparer stringComparer = StringComparer.InvariantCulture;
+
+            if (stringComparer.Compare(previousHash, currentHashRow) == 0)
+                return false;
+            else
+                return true;
+        }
+
+        public IEnumerator<NPOI_Node> GetEnumerator()
+        {
+            Node tempNode = head;
+
+            while (tempNode != null)
+            {
+                yield return (NPOI_Node)tempNode.NodeContent;
+                tempNode = tempNode.Next;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            Node tempNode = head;
+
+            while (tempNode != null)
+            {
+                yield return tempNode.NodeContent;
+                tempNode = tempNode.Next;
+            }
         }
     }
 }
