@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
+using SmartParser.Helpers;
 
 namespace SmartParser
 {
@@ -15,7 +16,8 @@ namespace SmartParser
         public class Node
         {
             public NPOI_Node NodeContent;
-            public string hash;
+            public string TypesHash;
+            public string ValuesHash;
             public Node Previous;
             public Node Next;
             public bool isHeader = false;
@@ -50,16 +52,24 @@ namespace SmartParser
         /// <summary>
         /// Add a new Node to the list.
         /// </summary>
-        public void Add(NPOI_Node content, string _hash)
+        public void Add(NPOI_Node content)
         {
             size++;
             Node tempCurrent = current;
+
+            var rowTypeString = HelpersMethods.StringArrayToString(content.Cells.Select(x => x.CellType.ToString()).ToArray());
+
+            var rowValueString = HelpersMethods.StringArrayToString(content.Cells.Select(x => HelpersMethods.GetICellStringValue(x)).ToArray());
+
+            var typeHash = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowTypeString));
+            var valuesHash = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowValueString));
 
             // This is a more verbose implementation to avoid adding nodes to the head of the list
             var node = new Node()
             {
                 NodeContent = content,
-                hash = _hash
+                TypesHash = typeHash,
+                ValuesHash = valuesHash
             };
 
             if (head == null)
@@ -184,7 +194,7 @@ namespace SmartParser
 
         private void _evalNodes(Node previous, Node tempNode, Node next)
         {
-            if (previous == null && _hashNotSame(tempNode.hash, next.hash))
+            if (previous == null && _hashNotSame(tempNode.TypesHash, next.TypesHash))
             {
                 tempNode.isHeader = true;
             }
