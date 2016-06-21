@@ -1,4 +1,5 @@
 ﻿using NPOI.XSSF.UserModel;
+using SmartParser.Helpers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,6 +34,7 @@ namespace SmartParser
 
         [TableHeader(5, "DTRS (106 m3 NG)")]
         public double Dtrs { get; set; }
+        
     }
 
     class Program
@@ -66,7 +68,8 @@ namespace SmartParser
         private string _url;
         private Type _model;
         private string[] _headersCombinationsHash;
-
+        private Dictionary<string, string[]> _headderMap;
+        private MyLinkedList<XSSFRow> _linkedList = new MyLinkedList<XSSFRow>();
 
         public PetParser(string link, Type model)
         {
@@ -75,6 +78,7 @@ namespace SmartParser
 
             _buildHeadersCombinationFromAttributes();
             _scan();
+
         }
 
         private void _buildHeadersCombinationFromAttributes()
@@ -107,9 +111,16 @@ namespace SmartParser
 
             _headersCombinationsHash = _getCombinations(headders).Select(x=> 
             {
-                byte[] headder = Encoding.ASCII.GetBytes(string.Join("-", x.ToArray()));
-                return _getCheckSumMD5(headder);
-            }).ToArray<string>();           
+                byte[] headder = Encoding.ASCII.GetBytes(HelpersMethods.StringArrayToString(x.ToArray()));
+                return HelpersMethods.GetMD5(headder);
+            }).ToArray<string>();
+
+
+            _headderMap = _getCombinations(headders).ToDictionary(k => 
+            {
+                return HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(HelpersMethods.StringArrayToString(k.ToArray())));
+            }
+            ,v=> v.ToArray());
 
         }
 
@@ -246,12 +257,37 @@ namespace SmartParser
                         while (rows.MoveNext())
                         {
                             XSSFRow row = (XSSFRow)rows.Current;
-                                                        
+                            _linkedList.Add(row);
+
+                            Console.Write("Sheet : {0}, Line {1}, ", sheet.SheetName, rowNumber);
+                            
                             // hash of the row types 
                             var rowTypeString =String.Join("-", row.Cells.Select(x => x.CellType.ToString()).ToArray());
-                           var currentHashRow = _getCheckSumMD5(Encoding.ASCII.GetBytes(rowTypeString));
 
-                            list.Add(row, currentHashRow);
+                           var currentHashRow = HelpersMethods.GetMD5(Encoding.ASCII.GetBytes(rowTypeString));
+
+                            if(_hashNotSame(previousHash, currentHashRow))
+                            {
+                                rowDictionary.Add(row, new List<XSSFRow>());
+                            }
+                            else
+                            {
+                                IEnumerable<XSSFRow> list = rowDictionary.Last().Value;
+                                ((List<XSSFRow>)list).Add(row);
+                            }
+
+
+                            //for (int j = 0; j < row.Cells.Count; j++)
+                            //{
+                            //    Console.Write("[{0} : {1}], ", j, row.Cells[j].CellType.ToString());
+                            //}
+
+                            //Console.WriteLine();
+
+                            //var firstCell = row.Cells[0].CellType;
+                            //Console.WriteLine(firstCell.ToString());
+                            rowNumber++;
+                            previousHash = currentHashRow;
                         }
 
                         foreach (var node in list)
@@ -280,30 +316,7 @@ namespace SmartParser
                 return false;
             else
                 return true;
-        }
-
-        private string _getCheckSumMD5(byte[] rawData)
-        {
-            using (MD5 md5Hash = MD5.Create())
-            {
-                // Convert the input string to a byte array and compute the hash.
-                byte[] data = md5Hash.ComputeHash(rawData);
-
-                // Create a new Stringbuilder to collect the bytes
-                // and create a string.
-                StringBuilder sBuilder = new StringBuilder();
-
-                // Loop through each byte of the hashed data 
-                // and format each one as a hexadecimal string.
-                for (int i = 0; i < data.Length; i++)
-                {
-                    sBuilder.Append(data[i].ToString("x2"));
-                }
-
-                // Return the hexadecimal string.
-                return sBuilder.ToString();
-            }
-        }
+        }        
     }
 
     class Metadata<ModelObj>
