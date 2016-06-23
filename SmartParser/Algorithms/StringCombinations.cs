@@ -12,18 +12,28 @@ namespace SmartParser.Algorithms
         private string[] _strings;
         private int precision;
 
-        public StringCombinations(string[] strings)
+        public StringCombinations(string[] strings, int precision)
         {
             this._strings = strings;
-            this.precision = strings.Length;
+            this.precision = precision;
         }
         
 
-        public string[] GetCombinations()
+        public List<string[]> GetCombinations()
         {
-            HashSet<string> output = new HashSet<string>();
+            //HashSet<string> output = new HashSet<string>();
             var valueToBeEvaluated = "abcdefgh";
             var allCombinations = permutation(valueToBeEvaluated).ToArray();
+
+            List<string[]> allCombinations2 = permutation(_strings);
+
+            HashSet<string[]> output = new HashSet<string[]>();
+
+            for (int i = precision; i < _strings.Length; i++)
+            {
+                output = _iterate(allCombinations2);
+                allCombinations2 = output.ToList().CloneList();
+            }
 
             /*
             foreach(char a in valueToBeEvaluated)
@@ -49,10 +59,10 @@ namespace SmartParser.Algorithms
                 }
             }
             */
-            return output.Where(x=>x.Length <= 6).ToArray<string>();
+            return output.Where(x=>x.Length <= (_strings.Length-precision)).ToList<string[]>();
         }
 
-        private List<string[]> _iterate(List<string[]> arrayList)
+        private HashSet<string[]> _iterate(List<string[]> arrayList)
         {
             HashSet<string[]> output = new HashSet<string[]>();
 
@@ -66,7 +76,7 @@ namespace SmartParser.Algorithms
                     output.Add(a);
                 }
             }
-            return output.ToList<string[]>();
+            return output;
         }
 
         public static List<string> permutation(string s)
@@ -104,6 +114,47 @@ namespace SmartParser.Algorithms
                 {
                     string ps = new StringBuilder(s).Insert(i, c).ToString();
                     res.Add(ps);
+                }
+            }
+            return res;
+        }
+
+        public static List<string[]> permutation(string[] s)
+        {
+            // The result
+            var res = new List<string[]>();
+            // If input string's length is 1, return {s}
+            if (s.Length == 1)
+            {
+                res.Add(s);
+            }
+            else if (s.Length > 1)
+            {
+                int lastIndex = s.Length - 1;
+                // Find out the last character
+                var last = s[lastIndex].Clone<string>();
+                // Rest of the string
+                var rest = s.Take(lastIndex).ToArray().CloneArray();
+                // Perform permutation on the rest string and
+                // merge with the last character
+                res = merge(permutation(rest), last);
+            }
+            return res;
+        }
+
+        public static List<string[]> merge(List<string[]> list, string toBeAddedString)
+        {
+            var res = new List<string[]>();
+            // Loop through all the string in the list
+            foreach (string[] listItem in list)
+            {
+                // For each string, insert the last character to all possible postions
+                // and add them to the new list
+                for (int i = 0; i <= listItem.Length; ++i)
+                {
+                    var clone = listItem.CloneArray();
+                    clone.ToList().Insert(i, toBeAddedString);
+                    res.Add(clone);
                 }
             }
             return res;

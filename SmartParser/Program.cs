@@ -50,7 +50,15 @@ namespace SmartParser
             PetParser petParser = new PetParser("http://lngdataplatform.gie.eu/cron/daily_totals_2012-2014.xlsx"
                 , typeof(LNGFileValue_DailyTotal));
 
-            StringCombinations sc = new StringCombinations(new string[] { "DATE", "Inventory (103 m3 LNG)" , "Send-Out (106 m3 NG)" , "STATUS" , "DTMI (103 m3 LNG)" , "DTRS (106 m3 NG)" });
+            StringCombinations sc = new StringCombinations(new string[] {
+                "DATE",
+                "Inventory (103 m3 LNG)" ,
+                "Send-Out (106 m3 NG)" ,
+                "STATUS" ,
+                "DTMI (103 m3 LNG)" ,
+                "DTRS (106 m3 NG)",
+                "WARNING",
+                "INFO"},6);
 
             var res = sc.GetCombinations();
         }
@@ -236,7 +244,7 @@ namespace SmartParser
         //    }
 
         //    throw new NotImplementedException();
-        //}
+        //}C:\Users\PeterVargovcik\Documents\_PetProjects\SmartParser\SmartParser\Files\daily_totals_2012-2014.xlsx
 
         private void _scan()
         {
