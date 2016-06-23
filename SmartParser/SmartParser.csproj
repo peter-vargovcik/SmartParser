@@ -63,6 +63,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\StringCombinations.cs" />
+    <Compile Include="Helpers\ExtensionMethods.cs" />
     <Compile Include="Helpers\HelpersMethods.cs" />
     <Compile Include="MyLinkedList.cs" />
     <Compile Include="Program.cs" />

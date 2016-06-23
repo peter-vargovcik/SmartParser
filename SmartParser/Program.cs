@@ -1,4 +1,5 @@
 ﻿using NPOI.XSSF.UserModel;
+using SmartParser.Algorithms;
 using SmartParser.Helpers;
 using System;
 using System.Collections;
@@ -43,10 +44,15 @@ namespace SmartParser
         static void Main(string[] args)
         {
 
+
+
+
             PetParser petParser = new PetParser("http://lngdataplatform.gie.eu/cron/daily_totals_2012-2014.xlsx"
                 , typeof(LNGFileValue_DailyTotal));
 
+            StringCombinations sc = new StringCombinations(new string[] { "DATE", "Inventory (103 m3 LNG)" , "Send-Out (106 m3 NG)" , "STATUS" , "DTMI (103 m3 LNG)" , "DTRS (106 m3 NG)" });
 
+            var res = sc.GetCombinations();
         }
     }
 
@@ -79,6 +85,11 @@ namespace SmartParser
             _buildHeadersCombinationFromAttributes();
             _scan();
 
+        }
+
+        public List<string[]> getRows()
+        {
+            return _linkedList.Select(x => { return x.Cells.Select(y => { return HelpersMethods.GetICellStringValue(y); }).ToArray(); }).ToList();
         }
 
         private void _buildHeadersCombinationFromAttributes()
@@ -135,7 +146,7 @@ namespace SmartParser
 
                 if(propertyParamsLengh >1)
                 {
-                    var listCopy = listOfLists.Select(x => { return _cloneList(x); }).ToList();
+                    var listCopy = listOfLists.Select(x => { return x.CloneList(); }).ToList();
 
                     for (int propertyParamIndex = 0; propertyParamIndex < propertyParamsLengh; propertyParamIndex++)
                     {
@@ -143,7 +154,7 @@ namespace SmartParser
                             listOfLists.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
                         else
                         {
-                            var copy = listCopy.Select(x => { return _cloneList(x); }).ToList();
+                            var copy = listCopy.Select(x => { return x.CloneList(); }).ToList();
                             copy.ForEach(x => x.Add(item.Value.Value[propertyParamIndex]));
                             listOfLists.AddRange(copy);
                         }
@@ -156,17 +167,7 @@ namespace SmartParser
             }
             return listOfLists.Select(x=>x.ToArray()).ToList();
         }
-
-        private List<string> _cloneList(List<string> source)
-        {
-            List<string> output = new List<string>();
-            for (int i = 0; i < source.Count; i++)
-            {
-                output.Add("" +source[i]);
-            }
-            return output;
-        }
-
+        
         //private List<T> _cloneList<T>(List<T> source)
         //{
         //    List<T> output = new List<T>();
