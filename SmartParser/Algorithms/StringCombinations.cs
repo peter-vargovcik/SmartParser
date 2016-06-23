@@ -19,21 +19,32 @@ namespace SmartParser.Algorithms
         }
         
 
-        public List<string[]> GetCombinations()
+        public List<List<string>> GetCombinations()
         {
-            //HashSet<string> output = new HashSet<string>();
+            /*
+            HashSet<string> output = new HashSet<string>();
             var valueToBeEvaluated = "abcdefgh";
             var allCombinations = permutation(valueToBeEvaluated).ToArray();
+            */
+            List<List<string>> outputLists = permutation(_strings.ToList());
 
-            List<string[]> allCombinations2 = permutation(_strings);
+            //HashSet<string> outputHash = new HashSet<string>();
 
-            HashSet<string[]> output = new HashSet<string[]>();
+            //foreach (var item in outputLists)
+            //{
+            //    outputHash.Add(HelpersMethods.GetMD5(item.ToArray()));
+            //}
 
-            for (int i = precision; i < _strings.Length; i++)
-            {
-                output = _iterate(allCombinations2);
-                allCombinations2 = output.ToList().CloneList();
-            }
+
+
+            //HashSet<string[]> output = new HashSet<string[]>();
+         
+            //for (int i = precision; i < _strings.Length; i++)
+            //{
+            //    output = _iterate(outputLists);
+            //    outputLists = output.Select(x=> x.ToList<string>()).ToList<List<string>>();
+            //}
+
 
             /*
             foreach(char a in valueToBeEvaluated)
@@ -59,16 +70,23 @@ namespace SmartParser.Algorithms
                 }
             }
             */
-            return output.Where(x=>x.Length <= (_strings.Length-precision)).ToList<string[]>();
+
+
+            //return output
+            //    .Where(x=>x.Length <= (_strings.Length-precision))
+            //    .Select(x => x.ToList<string>())
+            //    .ToList();
+
+            return outputLists;
         }
 
-        private HashSet<string[]> _iterate(List<string[]> arrayList)
+        private HashSet<string[]> _iterate(List<List<string>> listOfLists)
         {
             HashSet<string[]> output = new HashSet<string[]>();
 
             foreach (string stringValue in _strings)
             {
-                var thisList = arrayList.CloneList();
+                var thisList = listOfLists.CloneList();
                 foreach (var item in thisList)
                 {
                     var a = item.TakeWhile(x=> x == stringValue).ToArray();
@@ -119,22 +137,22 @@ namespace SmartParser.Algorithms
             return res;
         }
 
-        public static List<string[]> permutation(string[] s)
+        public static List<List<string>> permutation(List<string> s)
         {
             // The result
-            var res = new List<string[]>();
+            var res = new List<List<string>>();
             // If input string's length is 1, return {s}
-            if (s.Length == 1)
+            if (s.Count == 1)
             {
                 res.Add(s);
             }
-            else if (s.Length > 1)
+            else if (s.Count > 1)
             {
-                int lastIndex = s.Length - 1;
+                int lastIndex = s.Count - 1;
                 // Find out the last character
-                var last = s[lastIndex].Clone<string>();
+                var last = ""+s[lastIndex].Clone<string>();
                 // Rest of the string
-                var rest = s.Take(lastIndex).ToArray().CloneArray();
+                var rest = s.Take(lastIndex).ToList();                  //Perhaps Clone
                 // Perform permutation on the rest string and
                 // merge with the last character
                 res = merge(permutation(rest), last);
@@ -142,18 +160,18 @@ namespace SmartParser.Algorithms
             return res;
         }
 
-        public static List<string[]> merge(List<string[]> list, string toBeAddedString)
+        public static List<List<string>> merge(List<List<string>> list, string toBeAddedString)
         {
-            var res = new List<string[]>();
+            var res = new List<List<string>>();
             // Loop through all the string in the list
-            foreach (string[] listItem in list)
+            foreach (List<string> listItem in list)
             {
                 // For each string, insert the last character to all possible postions
                 // and add them to the new list
-                for (int i = 0; i <= listItem.Length; ++i)
+                for (int i = 0; i <= listItem.Count; ++i)
                 {
-                    var clone = listItem.CloneArray();
-                    clone.ToList().Insert(i, toBeAddedString);
+                    var clone = listItem.CloneList<string>();                        // Cloning again? 
+                    clone.Insert(i, toBeAddedString);
                     res.Add(clone);
                 }
             }

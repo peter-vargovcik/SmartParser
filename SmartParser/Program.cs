@@ -58,9 +58,29 @@ namespace SmartParser
                 "DTMI (103 m3 LNG)" ,
                 "DTRS (106 m3 NG)",
                 "WARNING",
-                "INFO"},6);
+                "INFO"}, 6);
 
-            var res = sc.GetCombinations();
+
+
+
+            var outputLists = sc.GetCombinations();
+
+            HashSet<string> outputHash = new HashSet<string>();
+
+            foreach (var item in outputLists)
+            {
+                outputHash.Add(HelpersMethods.GetMD5(item.ToArray()));
+            }
+
+            var headderHashes = petParser.HeadersCombinationsHash;
+
+            foreach (var hash in headderHashes)
+            {
+                if(outputHash.Contains(hash))
+                    throw new Exception("FoundHash!");
+            }
+
+
         }
     }
 
@@ -81,7 +101,6 @@ namespace SmartParser
     {
         private string _url;
         private Type _model;
-        private string[] _headersCombinationsHash;
         private Dictionary<string, string[]> _headderMap;
         private MyLinkedList<XSSFRow> _linkedList = new MyLinkedList<XSSFRow>();
 
@@ -94,6 +113,9 @@ namespace SmartParser
             _scan();
 
         }
+
+
+        public string[] HeadersCombinationsHash { get; private set; }
 
         public List<string[]> getRows()
         {
@@ -128,7 +150,7 @@ namespace SmartParser
 
             List<string[]> combinations = _getCombinations(headders);
 
-            _headersCombinationsHash = _getCombinations(headders).Select(x=> 
+            HeadersCombinationsHash = _getCombinations(headders).Select(x=> 
             {
                 byte[] headder = Encoding.ASCII.GetBytes(HelpersMethods.StringArrayToString(x.ToArray()));
                 return HelpersMethods.GetMD5(headder);
@@ -244,13 +266,22 @@ namespace SmartParser
         //    }
 
         //    throw new NotImplementedException();
-        //}C:\Users\PeterVargovcik\Documents\_PetProjects\SmartParser\SmartParser\Files\daily_totals_2012-2014.xlsx
-
+        //}C:\Users\Peter Vargovcik\Documents\Visual Studio 2015\Projects\SmartParser\SmartParser\Files\daily_totals_2012-2014.xlsx
         private void _scan()
         {
+            byte[] file = null;
             try
             {
-                using (var stream = new MemoryStream(File.ReadAllBytes("C:\\Users\\PeterVargovcik\\Documents\\_PetProjects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx")))
+                file = File.ReadAllBytes("C:\\Users\\PeterVargovcik\\Documents\\_PetProjects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx");
+            }
+            catch (Exception e)
+            {
+                file = File.ReadAllBytes("C:\\Users\\Peter Vargovcik\\Documents\\Visual Studio 2015\\Projects\\SmartParser\\SmartParser\\Files\\daily_totals_2012-2014.xlsx");
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream(file))
                 {
                     XSSFWorkbook hssfwb = new XSSFWorkbook(stream);
                     MyLinkedList<XSSFRow> list = new MyLinkedList<XSSFRow>();

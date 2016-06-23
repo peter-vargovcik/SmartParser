@@ -102,5 +102,10 @@ namespace SmartParser.Helpers
         {
             return string.Join(",", array);
         }
+
+        internal static string GetMD5(string[] stringArray)
+        {
+            return GetMD5(Encoding.ASCII.GetBytes(StringArrayToString(stringArray)));
+        }
     }
 }
